@@ -39,8 +39,8 @@ jobs:
       - name: Docker build and push
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build --platform linux/amd64 -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }} .
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
+          docker build --platform linux/amd64 -t qormoon/network-docker .
+          docker push qormoon/network-docker
 
       - name: Deploy
         uses: appleboy/ssh-action@master
@@ -54,10 +54,10 @@ jobs:
             sudo docker stop network-server || true
             sudo docker rm network-server || true
             sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }} || true
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
+            sudo docker pull qormoon/network-docker
             sudo docker run -e SPRING_PROFILES_ACTIVE=prod \
                             -e DB_URL=${{ secrets.DB_URL }} \
                             -e DB_USER=${{ secrets.DB_USER }} \
                             -e DB_PASSWORD=${{ secrets.DB_PW }} \
                             -e EC2_HOST=${{ secrets.EC2_HOST }} \
-                            --name network-server -p 8080:8080 -d ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
+                            --name network-server -p 8080:8080 -d qormoon/network-docker
