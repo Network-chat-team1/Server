@@ -1,0 +1,63 @@
+name: SB CI/CD with Gradle
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main", "develop"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set prod.yml
+        run: |
+          cd ./src/main/resources
+          sed -i 's|${DB_URL}|'"${{ secrets.DB_URL }}"'|g' application-prod.yml
+          sed -i 's|${DB_USER}|'"${{ secrets.DB_USER }}"'|g' application-prod.yml
+          sed -i 's|${DB_PW}|'"${{ secrets.DB_PW }}"'|g' application-prod.yml
+
+
+      - name: Grant permission
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew bootJar
+
+      - name: Docker build and push
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build --platform linux/amd64 -t qormoon/network-docker .
+          docker push qormoon/network-docker
+
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_NAME }}
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          script: |
+            sudo usermod -aG docker $USER
+            sudo docker stop network-server || true
+            sudo docker rm network-server || true
+            sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }} || true
+            sudo docker pull qormoon/network-docker
+            sudo docker run -e SPRING_PROFILES_ACTIVE=prod \
+                            -e DB_URL=${{ secrets.DB_URL }} \
+                            -e DB_USER=${{ secrets.DB_USER }} \
+                            -e DB_PASSWORD=${{ secrets.DB_PW }} \
+                            -e EC2_HOST=${{ secrets.EC2_HOST }} \
+                            --name network-server -p 8080:8080 -d qormoon/network-docker
