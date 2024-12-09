@@ -20,8 +20,8 @@ public class SwaggerConfig {
 
 	private Info apiInfo(){
 		return new Info()
-			.title("Reflog Swagger")
-			.description("Reflog Server API 명세서")
+			.title("Network Swagger")
+			.description("Network Server API 명세서")
 			.version("1.0.0");
 	}
 }
