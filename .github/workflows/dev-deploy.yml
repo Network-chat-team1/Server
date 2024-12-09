@@ -51,8 +51,8 @@ jobs:
           port: 22
           script: |
             sudo usermod -aG docker $USER
-            sudo docker stop sooklog-server || true
-            sudo docker rm sooklog-server || true
+            sudo docker stop network-server || true
+            sudo docker rm network-server || true
             sudo docker image rm ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }} || true
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
             sudo docker run -e SPRING_PROFILES_ACTIVE=prod \
