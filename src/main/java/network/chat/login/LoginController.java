@@ -8,6 +8,7 @@ import network.chat.doctor.repository.DoctorRepository;
 import network.chat.patient.entity.PatientEntity;
 import network.chat.patient.repository.PatientRepository;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,7 @@ public class LoginController {
         this.patientRepository = patientRepository;
     }
 
+    @CrossOrigin(origins = {"http://localhost:3000", "https://hospitalchat.netlify.app","https://network-chat.store"})
     @Operation(summary = "사용자 로그인", description = "고유번호와 비밀번호를 사용하여 환자 또는 의료진을 로그인합니다.")
     @GetMapping
     public String login(
