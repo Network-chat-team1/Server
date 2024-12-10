@@ -55,10 +55,9 @@ jobs:
             sudo docker image rm qormoon/network-docker || true
             sudo docker pull qormoon/network-docker
             sudo docker run -d \
-                            -e SPRING_PROFILES_ACTIVE=prod \
-                            -e INTERACTIVE_MODE=false \ # 배포 환경에서는 대화형 입력 비활성화
-                            -e DB_URL=${{ secrets.DB_URL }} \
-                            -e DB_USER=${{ secrets.DB_USER }} \
-                            -e DB_PASSWORD=${{ secrets.DB_PW }} \
-                            -e EC2_HOST=${{ secrets.EC2_HOST }} \
-                            --name network-server -p 8080:8080 qormoon/network-docker
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e DB_URL=${{ secrets.DB_URL }} \
+              -e DB_USER=${{ secrets.DB_USER }} \
+              -e DB_PASSWORD=${{ secrets.DB_PW }} \
+              -e EC2_HOST=${{ secrets.EC2_HOST }} \
+              --name network-server -p 8080:8080 qormoon/network-docker
