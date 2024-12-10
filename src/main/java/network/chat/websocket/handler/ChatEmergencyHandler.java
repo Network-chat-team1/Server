@@ -1,4 +1,5 @@
 package network.chat.websocket.handler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import network.chat.doctor.entity.DoctorEntity;
 import network.chat.doctor.repository.DoctorRepository;
 import network.chat.doctorchat.entity.ChatMessage;
@@ -18,29 +19,28 @@ public class ChatEmergencyHandler extends TextWebSocketHandler {
     private final DoctorRepository doctorRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatSessionManager sessionManager;
+    private final ObjectMapper objectMapper;
 
-    public ChatEmergencyHandler(DoctorRepository doctorRepository, ChatMessageRepository chatMessageRepository, ChatSessionManager sessionManager) {
+    public ChatEmergencyHandler(DoctorRepository doctorRepository, ChatMessageRepository chatMessageRepository, ChatSessionManager sessionManager, ObjectMapper objectMapper) {
         this.doctorRepository = doctorRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.sessionManager = sessionManager;
+        this.objectMapper = objectMapper;
     }
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         sessions.add(session);
 
-        // 생성된 WebSocket 세션 ID 가져오기
         String sessionId = session.getId();
-
-        // URL 쿼리 파라미터에서 고유번호 추출
         String query = session.getUri().getQuery();
         String uniqueIdentifier = query.split("=")[1];
 
-        // 고유번호로 DB에서 사용자 조회
         Optional<DoctorEntity> doctorOptional = doctorRepository.findByUniqueIdentifier(uniqueIdentifier);
         if (doctorOptional.isPresent()) {
             DoctorEntity doctor = doctorOptional.get();
-            doctor.setSessionId(sessionId); // DB에 세션 ID 업데이트
-            doctorRepository.save(doctor); // 저장
+            doctor.setSessionId(sessionId);
+            doctorRepository.save(doctor);
             sessionManager.addSession(sessionId, doctor.getName());
             System.out.println("의료진 연결됨: " + doctor.getName() + " (" + sessionId + ")");
         } else {
@@ -51,33 +51,29 @@ public class ChatEmergencyHandler extends TextWebSocketHandler {
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) {
         String sessionId = session.getId();
-
-        // SessionManager에서 이름 조회
         String senderName = sessionManager.getUsername(sessionId);
         if (senderName == null) {
             senderName = "알 수 없는 사용자";
         }
 
-        // 이름을 포함한 메시지 생성
-        String formattedMessage = senderName + ": " + message.getPayload();
-        System.out.println("브로드캐스트 메시지: " + formattedMessage);
-
-        // DB에 메시지 저장
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setSender(senderName);
         chatMessage.setMessage(message.getPayload());
         chatMessage.setTimestamp(LocalDateTime.now());
         chatMessageRepository.save(chatMessage);
 
-        // 모든 클라이언트에게 브로드캐스트
-        for (WebSocketSession s : sessions) {
-            try {
+        // JSON 형식 메시지 생성
+        try {
+            String jsonMessage = objectMapper.writeValueAsString(chatMessage);
+            System.out.println("브로드캐스트 메시지: " + jsonMessage);
+
+            for (WebSocketSession s : sessions) {
                 if (s.isOpen()) {
-                    s.sendMessage(new TextMessage(formattedMessage));
+                    s.sendMessage(new TextMessage(jsonMessage));
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -86,7 +82,6 @@ public class ChatEmergencyHandler extends TextWebSocketHandler {
         String sessionId = session.getId();
         String username = sessionManager.getUsername(sessionId);
 
-        // 세션 종료 시 SessionManager에서 제거
         sessionManager.removeSession(sessionId);
         sessions.remove(session);
 
