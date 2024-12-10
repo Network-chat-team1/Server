@@ -16,6 +16,14 @@ public class NotificationConsoleInput implements CommandLineRunner{
 
     @Override
     public void run(String... args) {
+        // 환경 변수로 대화형 입력 활성화 여부 결정
+        String interactiveMode = System.getenv("INTERACTIVE_MODE");
+        if (!"true".equalsIgnoreCase(interactiveMode)) {
+            System.out.println("대화형 모드가 비활성화되어 있습니다. 입력 기능을 건너뜁니다.");
+            return;
+        }
+
+        // 대화형 모드 실행
         Scanner scanner = new Scanner(System.in);
         System.out.println("공지 메시지를 입력하세요. 종료하려면 'exit'를 입력하십시오.");
 
