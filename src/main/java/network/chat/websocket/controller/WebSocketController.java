@@ -32,7 +32,7 @@ public class WebSocketController {
     }
 
     @Operation(
-            summary = "건의방 WebSocket URL= ws://3.39.185.125:8080/ws/announcements",
+            summary = "건의방 WebSocket URL= ws://3.39.185.125:8080/ws/suggestions",
             description = "환자가 건의를 전송하기 위한 WebSocket 경로입니다.\n" +
                         "- 이 WebSocket은 클라이언트가 서버로 건의 메시지를 전송하는 데 사용됩니다.\n" +
                         "- 서버는 수신된 메시지를 처리하거나 저장합니다."
