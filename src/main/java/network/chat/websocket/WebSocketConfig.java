@@ -9,6 +9,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfig implements WebSocketConfigurer {
     private final ChatNotificationHandler chatNotificationHandler;
 
+
     public WebSocketConfig(ChatNotificationHandler chatNotificationHandler) {
         this.chatNotificationHandler = chatNotificationHandler;
     }
