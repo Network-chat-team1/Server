@@ -7,6 +7,8 @@ import network.chat.doctor.entity.DoctorEntity;
 import network.chat.doctor.repository.DoctorRepository;
 import network.chat.patient.entity.PatientEntity;
 import network.chat.patient.repository.PatientRepository;
+
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,7 +29,7 @@ public class LoginController {
     }
 
     @Operation(summary = "사용자 로그인", description = "고유번호와 비밀번호를 사용하여 환자 또는 의료진을 로그인합니다.")
-    @PostMapping
+    @GetMapping
     public String login(
             @Parameter(description = "사용자의 고유번호 (의사: D001, 환자: P001)") @RequestParam String uniqueIdentifier,
             @Parameter(description = "사용자의 비밀번호") @RequestParam String password) {
